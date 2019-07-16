@@ -59,7 +59,11 @@ LocationDialog.IsImperialUnitType = function()
 
 LocationDialog.FetchDashboardWidgets = function()
 {
-    return FormIt.FetchDashboardWidgets();
+    const test = FormIt.FetchDashboardWidgets();
+
+    debugger;
+    return test;
+    //return FormIt.FetchDashboardWidgets();
 }
 
 LocationDialog.FetchWidgetsForStation = function (args)
