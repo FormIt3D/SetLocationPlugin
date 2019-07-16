@@ -54,7 +54,7 @@ LocationDialog.FetchNearestWeatherStations = function(locationObj)
 LocationDialog.IsImperialUnitType = function()
 {
     //return bool
-    return !FormIt.Model.GetUnitType();
+    return !FormIt.Model.GetUnitTypeCurrent();
 }
 
 LocationDialog.FetchDashboardWidgets = function()
