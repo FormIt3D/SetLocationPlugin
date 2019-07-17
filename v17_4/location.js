@@ -87,6 +87,8 @@ class FormItMap {
         this._weatherStationCache = {};
         this._allWeatherPins = [];
 
+        this._isImporting = false;
+
         this._setLocationButton = document.getElementById('SetLocationButton');
         this._cancelLocationButton = document.getElementById('CancelLocationButton');
 
@@ -127,11 +129,8 @@ class FormItMap {
             this._syncMaps();
         });
 
-        //window.addEventListener('resize', this._handleResize.bind(this));
         Microsoft.Maps.Events.addHandler(this._locationMap, 'mapresize', () => {
             this._handleResize();
-            this._deactivateAllPins();
-            this._deselectStation();
         });
 
         Microsoft.Maps.Events.addHandler(this._locationMap, 'viewchange', () => {
@@ -181,6 +180,12 @@ class FormItMap {
                 });
             }
         },100)
+    }
+
+    resetWeatherStationData() {
+        this._weatherStationCache = {};
+        this._deactivateAllPins();
+        this._deselectStation();
     }
 
     _handleLoggedIn(){
@@ -268,10 +273,11 @@ class FormItMap {
     }
 
     _startImport(){
+        this._isImporting = true;
         this._importMapContainer.style.display = 'block';
         this._importModeButtons.style.display = 'block';
         this._locationModeButtons.style.display = 'none';
-        this._locationMapControl.classList= 'importMode';
+        this._locationMapControl.classList = 'importMode';
         this._hideRightPanel();
         this._deselectStation();
 
@@ -333,6 +339,8 @@ class FormItMap {
     }
 
     _finishImport(){
+        this._isImporting = false;
+
         this._getValidZoomLevelForImport(this._importMap.getZoom()).then(() => {
             const centerLat = this._importMap.getCenter().latitude;
             const centerLon = this._importMap.getCenter().longitude;
@@ -407,10 +415,11 @@ class FormItMap {
     }
 
     _cancelImport(){
+        this._isImporting = false;
         this._importMapContainer.style.display = 'none';
         this._importModeButtons.style.display = 'none';
         this._locationModeButtons.style.display = 'block';
-        this._locationMapControl.classList= '';
+        this._locationMapControl.classList = '';
         this._showRightPanel();
     }
 
@@ -472,6 +481,12 @@ class FormItMap {
     }
 
     _handleResize () {
+        if (this._isImporting) {
+            this._syncMaps();
+        }
+    }
+
+    _syncMaps () {
         const minLength = Math.min(window.innerHeight, window.innerWidth, this._maxMapImportSize);
 
         //keep import map square by minium length
@@ -484,17 +499,13 @@ class FormItMap {
             height: minLength 
         });
 
-        this._syncMaps();
-    }
-
-    _syncMaps () {
         //keep location map in sync
         this._locationMap.setView({
             center: this._importMap.getCenter(),
             zoom: this._importMap.getZoom()
         });
     }
-    
+
     _showWeatherStations () {
         this._removeAllStationPins();
 
@@ -684,7 +695,7 @@ class FormItMap {
         const callback = (result) => {
             this._weatherStationCache[stationId] = result.widgets;
 
-            this._loadWidgets(result.widgets);
+            this._loadWidgets(result.widgets)
         }
 
         if (this._weatherStationCache[stationId]){
@@ -787,13 +798,30 @@ class FormItMap {
 //defined in Bing library url param "callback"
 window.FormItMapGlobalInit = () => {
     const map = new FormItMap();
-    window.setBindings = map.setBindings.bind(map);
-    window.resetAddress = map.resetAddress.bind(map);
 
-    //Support for Pyramid.
+    //mock data for testing
+    /*window._map_global_bindings = {
+        fetchNearestWeatherStations: (location, callback) => {
+            callback([{"latitude":40.02,"longitude":-105.25,"stationId":59462,"stationType":"TMY2"},{"latitude":40.03759,"longitude":-105.36501,"stationId":21165,"stationType":"GBS"},{"latitude":40.05085,"longitude":-105.13554,"stationId":21384,"stationType":"GBS"},{"latitude":39.86185,"longitude":-105.34746,"stationId":21164,"stationType":"GBS"},{"latitude":39.87515,"longitude":-105.11838,"stationId":21383,"stationType":"GBS"},{"latitude":40.21316,"longitude":-105.38261,"stationId":21166,"stationType":"GBS"},{"latitude":40.22649,"longitude":-105.15277,"stationId":21385,"stationType":"GBS"},{"latitude":40.02402,"longitude":-105.59442,"stationId":20946,"stationType":"GBS"},{"latitude":39.84825,"longitude":-105.57648,"stationId":20945,"stationType":"GBS"},{"latitude":40.06391,"longitude":-104.90602,"stationId":21603,"stationType":"GBS"}]);
+        }
+    };*/
+
+    //This is needed due to a race condition between FormItMapGlobalInit being invoked (during Bing maps load)
+    //and the iframes onload event trigger (which subsequently sets the bindings).
     if (window._map_global_bindings){
-        window.setBindings(_map_global_bindings);
+        map.setBindings(window._map_global_bindings);
+    }else{
+        const bindingInterval = window.setInterval(() => {
+            if (window._map_global_bindings){
+                map.setBindings(window._map_global_bindings);
+                window.clearInterval(bindingInterval);
+            }
+        }, 100);
     }
+
+
+    window.resetAddress = map.resetAddress.bind(map);
+    window.resetWeatherStationData = map.resetWeatherStationData.bind(map);
 }
 
 //fgnass.github.com/spin.js#v1.3.3
