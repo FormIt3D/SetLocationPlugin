@@ -8,6 +8,8 @@ During testing, you should not make any changes to directories which are not mar
 
 To see your changes in FormIt non-release clients, update `versions_prerelease.json` with any directory changes.
 
+![Plugin versioning](pluginVersioning-Updated.png)
+
 ## Releasing 
 
 To release changes:
