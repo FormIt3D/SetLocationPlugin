@@ -61,6 +61,8 @@ LocationDialog.FetchDashboardWidgets = function()
 {
     const test = FormIt.FetchDashboardWidgets();
 
+    console.log(test);
+
     //console.log(test);
     //debugger;
     return test;

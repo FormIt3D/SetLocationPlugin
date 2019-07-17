@@ -66,6 +66,9 @@ LocationDialog.FetchDashboardWidgets = function (callback)
         "LocationDialog.FetchDashboardWidgets",
         "",
         function(result){
+
+            console.log(result);
+            debugger;
             //Not entirely sure why this is stringified twice...
             callback(JSON.parse(JSON.parse(result)));
         }
