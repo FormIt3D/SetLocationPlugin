@@ -701,7 +701,7 @@ class FormItMap {
         if (this._weatherStationCache[stationId]){
             this._loadWidgets(this._weatherStationCache[stationId]);
         }else{
-            this._bindings.fetchWidgetsForStation(stationId, widgetIds, widgetVersions, callback);
+            this._bindings.fetchWidgetsForStation(`${stationId}`, widgetIds, widgetVersions, callback);
         }
     }
 
