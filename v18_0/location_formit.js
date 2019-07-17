@@ -5,8 +5,6 @@ LocationDialog.ShowDialog = function()
     var dialogParams = {
     "PluginName": "Set the Location",
     "DialogBox": "PLUGINLOCATION/location.html",
-    "DialogBoxWidth": 1000,
-    "DialogBoxHeight": 700,
     "DialogBoxType": "Modal"};
 
     //console.log("LocationDialog.ShowDialog: " + LocationDialog.PluginLocation );
