@@ -25,9 +25,16 @@
             });
         </script>
         <script>
-            window.not_important = 'YVRwaEhjZHdqVDFWVG1ZdVRKdFl+X2Mxc2s4WThURVg4WWk4TGxNbG8wUX5BamVXaEIzWlRFNGVJYkV5RUtVd2hsLUFTRW5yellVaVNpZ1I2UGs1STdHUWFkWlpZd1oySWJieUlzRGpzRnZK';
+            const selectedLang = window.localStorage.getItem("BingMapsLang");
+            let langParams = "";
+
+            if (selectedLang){
+                langParams = `setLang=${selectedLang}`;
+            }
+
+            const not_important = 'YVRwaEhjZHdqVDFWVG1ZdVRKdFl+X2Mxc2s4WThURVg4WWk4TGxNbG8wUX5BamVXaEIzWlRFNGVJYkV5RUtVd2hsLUFTRW5yellVaVNpZ1I2UGs1STdHUWFkWlpZd1oySWJieUlzRGpzRnZK';
             const script = document.createElement('script');
-            script.src = 'https://www.bing.com/api/maps/mapcontrol?callback=FormItMapGlobalInit&key=' + atob(not_important);
+            script.src = `https://www.bing.com/api/maps/mapcontrol?callback=FormItMapGlobalInit&key=${atob(not_important)}&${langParams}`;
             document.head.appendChild(script);
         </script>
         <script type="text/javascript" src="https://formit3d.github.io/FormItExamplePlugins/SharedPluginFiles/FormItInterface.js"></script>
@@ -95,6 +102,11 @@
             <div id='GraphState' class='none'>
                 <ul id='WeatherGraphList'>
                 </ul>
+            </div>
+            <div id='MapSettings'>
+                <p>Map Settings:</p>
+                <label for='LanguageInput'>Language and Region</label>
+                <select id='LanguageInput'></select>
             </div>
         </div>
         <!--Preload marker images-->

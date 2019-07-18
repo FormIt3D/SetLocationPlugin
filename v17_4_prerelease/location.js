@@ -1,3 +1,7 @@
+window.prepareBindings = (bindings) => {
+    window._map_global_bindings = bindings;
+}
+
 class FormItMap {
     constructor(){
         this._addressInput = document.getElementById('AddressInput');
@@ -20,6 +24,10 @@ class FormItMap {
         this._weatherGraphList = document.getElementById('WeatherGraphList');
         this._graphCloseButton = document.getElementById('GraphCloseButton');
         this._signInLink = document.getElementById('SignIn');
+
+        this._languageInput = document.getElementById('LanguageInput');
+
+        this.initLanguageSettings();
 
         const spinner = new Spinner({
             lines: 12,
@@ -142,6 +150,120 @@ class FormItMap {
         //https://social.msdn.microsoft.com/Forums/SECURITY/en-US/fa924dad-fab4-46ad-b5d6-cecdeb9721c7/bing-map-control-v8-returns-wrong-values-after-resize?forum=bingmapsajax
         this._handleResize();
         this.resetAddress();
+    }
+
+    initLanguageSettings(){ 
+        //List from here:
+        //https://docs.microsoft.com/en-us/bingmaps/v8-web-control/creating-and-hosting-map-controls/setting-map-control-parameters
+        const supportedLanguages = {
+            "Select an option": "",
+            "Arabic - Saudi Arabia":"ar-SA",
+            "Basque":"eu",
+            "Bulgarian":"bg",
+            "Bulgarian - Bulgaria":"bg-BG",
+            "Catalan Spanish":"ca",
+            "Central Kurdish":"ku-Arab",
+            "Chinese - China":"zh-CN",
+            "Chinese - Hong Kong":"zh-HK",
+            "Chinese - Simplified":"zh-Hans",
+            "Chinese - Taiwan":"zh-TW",
+            "Chinese - Traditional":"zh-Hant",
+            "Czech":"cs",
+            "Czech - Czech Republic":"cs-CZ",
+            "Danish":"da",
+            "Danish - Denmark":"da-DK",
+            "Dutch - Belgium":"nl-BE",
+            "Dutch - Netherlands":"nl",
+            "Dutch - Netherlands (nl-NL)":"nl-NL",
+            "English - Australia":"en-AU",
+            "English - Canada":"en-CA",
+            "English - India":"en-IN",
+            "English - United Kingdom":"en-GB",
+            "English - United States":"en-US",
+            "Finnish":"fi",
+            "Finnish - Finland":"fi-FI",
+            "French - Belgium":"fr-BE",
+            "French - Canada":"fr-CA",
+            "French - France":"fr",
+            "French - France (fr-FR)":"fr-FR",
+            "French - Switzerland":"fr-CH",
+            "Galician":"gl",
+            "German - Germany":"de",
+            "German - Germany (de-DE)":"de-DE",
+            "Greek":"el",
+            "Hebrew":"he",
+            "Hebrew - Israel":"he-IL",
+            "Hindi":"hi",
+            "Hindi - India":"hi-IN",
+            "Hungarian":"hu",
+            "Hungarian - Hungary":"hu-HU",
+            "Icelandic":"is",
+            "Icelandic - Iceland":"is-IS",
+            "Italian - Italy":"it",
+            "Italian - Italy (it-IT)":"it-IT",
+            "Japanese":"ja",
+            "Japanese - Japan":"ja-JP",
+            "Korean":"ko",
+            "Korean - Korea":"Ko-KR",
+            "Kyrgyz":"ky-Cyrl",
+            "Latvian":"lv",
+            "Latvian - Latvia":"lv-LV",
+            "Lithuanian":"lt",
+            "Lithuanian - Lithuania":"lt-LT",
+            "Norwegian - Bokmål":"nb",
+            "Norwegian - Bokmål - Norway":"nb-NO",
+            "Norwegian - Nynorsk":"nn",
+            "Polish":"pl",
+            "Polish - Poland":"pl-PL",
+            "Portuguese - Brazil":"pt-BR",
+            "Portuguese - Portugal":"pt-PT",
+            "Russian":"ru",
+            "Russian - Russia":"ru-RU",
+            "Spanish - Mexico":"es-MX",
+            "Spanish - Spain":"es",
+            "Spanish - Spain (es-ES)":"es-ES",
+            "Spanish - United States":"es-US",
+            "Swedish - Sweden":"sv",
+            "Swedish - Sweden (sv-SE)":"sv-SE",
+            "Tatar - Cyrillic":"tt-Cyrl",
+            "Thai":"th",
+            "Thai - Thailand":"th-TH",
+            "Turkish":"tr",
+            "Turkish - Turkey":"tr-TR",
+            "Ukrainian":"uk",
+            "Ukrainian - Ukraine":"uk-UA",
+            "Uyghur":"ug-Arab",
+            "Valencian":"ca-ES-valencia",
+            "Vietnamese" : "vi",
+            "Vietnamese - Vietnam": "vi-VN"
+        };
+
+        const selectedLang = window.localStorage.getItem("BingMapsLang") || "";
+
+        Object.keys(supportedLanguages).forEach((key) => {
+            const value = supportedLanguages[key];
+
+            const option = document.createElement("option");
+            option.innerHTML = key;
+            option.value = value;
+
+            if (value === selectedLang){
+                option.selected = "selected";
+            }
+
+            this._languageInput.appendChild(option);
+        });
+
+        this._languageInput.addEventListener('change', (e) => {
+            console.log(e.target.value);
+
+            //attempt to make selection sticky, not sure how well QT web engine cookies will persist.
+            window.localStorage.setItem("BingMapsLang", e.target.value);
+
+            //reload
+            window.location.href = window.location.href;
+            //.split('?')[0] + `?setLang=${e.target.value}`;
+        });
     }
 
     setBindings (bindings){
@@ -818,7 +940,6 @@ window.FormItMapGlobalInit = () => {
             }
         }, 100);
     }
-
 
     window.resetAddress = map.resetAddress.bind(map);
     window.resetWeatherStationData = map.resetWeatherStationData.bind(map);

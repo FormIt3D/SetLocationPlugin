@@ -339,3 +339,19 @@ input:focus {
 #NotSignedInState a {
     color:#4675A8;
 }
+
+#MapSettings{
+    border-top: solid 1px #CCCCCC;
+    padding-top:5px;
+}
+
+#MapSettings p{
+    font-size:18px;
+    margin:10px 0;
+}
+
+#MapSettings select{
+    font-size:16px;
+    margin:5px 0;
+    width:200px;
+}
