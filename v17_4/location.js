@@ -134,7 +134,7 @@ class FormItMap {
         });
 
         Microsoft.Maps.Events.addHandler(this._importMap, 'viewchange', () => {
-            this._syncMaps();
+            this._syncLocationMap();
         });
 
         Microsoft.Maps.Events.addHandler(this._locationMap, 'mapresize', () => {
@@ -255,14 +255,11 @@ class FormItMap {
         });
 
         this._languageInput.addEventListener('change', (e) => {
-            console.log(e.target.value);
-
-            //attempt to make selection sticky, not sure how well QT web engine cookies will persist.
+            //to make selection sticky
             window.localStorage.setItem("BingMapsLang", e.target.value);
 
             //reload
             window.location.href = window.location.href;
-            //.split('?')[0] + `?setLang=${e.target.value}`;
         });
     }
 
@@ -408,7 +405,7 @@ class FormItMap {
             zoom: 20
         });
 
-        this._syncMaps();
+        this._syncLocationMap();
     }
 
     //FORMIT-9364 - Handling for when Bing maps static API imagery is unavailable due to unsupported zoom level
@@ -604,28 +601,28 @@ class FormItMap {
 
     _handleResize () {
         if (this._isImporting) {
-            this._syncMaps();
+            const minLength = Math.min(window.innerHeight, window.innerWidth, this._maxMapImportSize);
+
+            //keep import map square by minium length
+            this._importMapControl.style.height = `${minLength}px`;
+            this._importMapControl.style.width = `${minLength}px`;
+            
+            this._importMap.setView({
+                center: this._location,
+                width: minLength, 
+                height: minLength 
+            });
         }
     }
 
-    _syncMaps () {
-        const minLength = Math.min(window.innerHeight, window.innerWidth, this._maxMapImportSize);
-
-        //keep import map square by minium length
-        this._importMapControl.style.height = `${minLength}px`;
-        this._importMapControl.style.width = `${minLength}px`;
-        
-        this._importMap.setView({
-            center: this._location,
-            width: minLength, 
-            height: minLength 
-        });
-
-        //keep location map in sync
-        this._locationMap.setView({
-            center: this._importMap.getCenter(),
-            zoom: this._importMap.getZoom()
-        });
+    _syncLocationMap(){
+        if (this._isImporting) {
+            //keep location map in sync
+            this._locationMap.setView({
+                center: this._importMap.getCenter(),
+                zoom: this._importMap.getZoom()
+            });
+        }
     }
 
     _showWeatherStations () {
