@@ -1,16 +1,9 @@
 [
     {
         "version":{
-            "major":17,
-            "minor":4
-        },
-        "path":"v17_4_prerelease"
-    },
-    {
-        "version":{
             "major":18,
             "minor":0
         },
-        "path":"v18_0"
+        "path":"v18_0_prerelease"
     }
 ]
