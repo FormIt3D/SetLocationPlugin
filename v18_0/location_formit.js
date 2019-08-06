@@ -34,8 +34,32 @@ LocationDialog.FinishImport = function(importSettings)
         importSettings.pixelHeight,
         importSettings.physicalWidth,
         importSettings.physicalHeight,
-        importSettings.address
+        importSettings.address,
+        importSettings.offsetX,
+        importSettings.offsetY
     );
+}
+
+LocationDialog.GetSatelliteImageData = function()
+{
+    const mainHistID = FormIt.Model.GetHistoryID();
+    const imageDataArray = FormIt.ImageManager.GetAllImages(mainHistID, FormIt.SortOrder.Ascending);
+
+    var satelliteImageData;
+    imageDataArray.forEach(function(imgObjPair){
+        const imgObj = imgObjPair.second;
+        if (imgObj && imgObj.IsSatelliteImage){
+            satelliteImageData = {
+                lat: imgObj.Coordinates.x,
+                lng: imgObj.Coordinates.y,
+                zoom: imgObj.Zoom,
+                corners: imgObj.Corners,
+                size: imgObj.Size
+            };
+        }
+    });
+
+    return satelliteImageData;
 }
 
 LocationDialog.ShowNotification = function(messageObj)

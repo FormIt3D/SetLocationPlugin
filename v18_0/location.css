@@ -135,6 +135,14 @@ input:focus {
     z-index: 2;
 }
 
+#ImportMapContainer #WorldCenterImg{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 1;
+    margin: -20px 0 0 -20px;
+}
+
 #ImportMapControl {
     border: dashed 1px black;
     margin: auto;

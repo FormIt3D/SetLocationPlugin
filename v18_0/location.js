@@ -21,6 +21,8 @@ class FormItMap {
         this._finishImportButton = document.getElementById('FinishImportButton');
         this._cancelImportButton = document.getElementById('CancelImportButton');
 
+        this._worldCenterOverlay = document.getElementById('WorldCenterImg');
+
         this._weatherGraphList = document.getElementById('WeatherGraphList');
         this._graphCloseButton = document.getElementById('GraphCloseButton');
         this._signInLink = document.getElementById('SignIn');
@@ -106,6 +108,7 @@ class FormItMap {
         const defaultLocation = new Microsoft.Maps.Location(40.019253, -105.274239);
 
         this._locationMap = new Microsoft.Maps.Map('#LocationMapControl', {
+            mapTypeId: Microsoft.Maps.MapTypeId.aerial,
             location: defaultLocation,
             disableStreetside: true,
             disableBirdseye: true
@@ -136,6 +139,9 @@ class FormItMap {
         Microsoft.Maps.Events.addHandler(this._importMap, 'viewchange', () => {
             this._syncLocationMap();
         });
+
+        //May be a useful feature in future
+        //Microsoft.Maps.Events.addHandler(this._importMap, 'click', this._handleWorldCenterClick.bind(this));
 
         Microsoft.Maps.Events.addHandler(this._locationMap, 'mapresize', () => {
             this._handleResize();
@@ -400,12 +406,43 @@ class FormItMap {
         this._hideRightPanel();
         this._deselectStation();
 
-        this._importMap.setView({
-            center: this._locationMap.getCenter(),
-            zoom: 20
-        });
+        this._bindings.getSatelliteImageData((imageData) => {
+            if (imageData){
+                this._worldCenterOverlay.style.display = 'none';
 
-        this._syncLocationMap();
+                const corners = imageData.corners;
+                const offsetX = imageData.size.x/2 + corners[0].x;
+                const offsetY = imageData.size.y/2 + corners[0].y;
+
+                const earthRadius = Microsoft.Maps.SpatialMath.getEarthRadius(Microsoft.Maps.SpatialMath.DistanceUnits.Meters);
+                const metersToFeet = 3.28;
+
+                //equation from https://stackoverflow.com/questions/2839533/adding-distance-to-a-gps-coordinate
+                const worldCenterLat = imageData.lat - (180/Math.PI) * ((offsetY / metersToFeet) / earthRadius);
+                const worldCenterLng = imageData.lng - (180/Math.PI) 
+                    * (( offsetX / metersToFeet) / earthRadius) / Math.cos(Math.PI/180.0*imageData.lat);
+
+                const worldCenter = new Microsoft.Maps.Location(worldCenterLat, worldCenterLng);
+
+                const importCenter = new Microsoft.Maps.Location(imageData.lat, imageData.lng);
+
+                this._importMap.setView({
+                    center: importCenter,
+                    zoom: imageData.zoom
+                });
+
+                this._setWorldCenter(worldCenter);
+            }else{
+                this._worldCenterOverlay.style.display = 'block';
+
+                this._importMap.setView({
+                    center: this._locationMap.getCenter(),
+                    zoom: 20
+                });
+            }
+
+            this._syncLocationMap();
+        });
     }
 
     //FORMIT-9364 - Handling for when Bing maps static API imagery is unavailable due to unsupported zoom level
@@ -461,8 +498,9 @@ class FormItMap {
         this._isImporting = false;
 
         this._getValidZoomLevelForImport(this._importMap.getZoom()).then(() => {
-            const centerLat = this._importMap.getCenter().latitude;
-            const centerLon = this._importMap.getCenter().longitude;
+            const mapCenter = this._importMap.getCenter();
+            const centerLat = mapCenter.latitude;
+            const centerLon = mapCenter.longitude;
 
             //Get current UI pixel size, but clamp to 640x640
             let pixelWidth = this._importMapControl.clientWidth;
@@ -502,31 +540,51 @@ class FormItMap {
                 const physicalWidth = meterWidth * metersToFeet;
                 const physicalHeight = meterHeight * metersToFeet;
 
-                this._reverseGeocode(centerLat, centerLon, (result) => {
-                    this._importMapContainer.style.display = 'none';
-                    this._importModeButtons.style.display = 'none';
-                    this._locationModeButtons.style.display = 'block';
-                    this._locationMapControl.classList= '';
-                    this._showRightPanel();
+                let offsetY;
+                let offsetX;
 
-                    this._location = new Microsoft.Maps.Location(centerLat, centerLon);
-                    this._address = result.name;
-                    this._addressInput.value = this._address;
-                    this._updatePushPin();
-                    this._focusLocation();
-                    
-                    this._bindings.finishImport({
-                        centerLat: centerLat,
-                        centerLon: centerLon, 
-                        latSpan: Math.abs(latSpan),
-                        lonSpan: Math.abs(lonSpan),
-                        pixelWidth: pixelWidth,
-                        pixelHeight: pixelHeight,
-                        physicalWidth: physicalWidth,
-                        physicalHeight: physicalHeight,
-                        address: this._address
-                    });
+                if (this._currentWorldCenter){
+                    offsetY = Microsoft.Maps.SpatialMath.getDistanceTo(
+                        mapCenter, 
+                        new Microsoft.Maps.Location(this._currentWorldCenter.latitude, centerLon),
+                        Microsoft.Maps.SpatialMath.DistanceUnits.Feet
+                    );
+
+                    //second get distance in longitude
+                    offsetX = Microsoft.Maps.SpatialMath.getDistanceTo(
+                        mapCenter, 
+                        new Microsoft.Maps.Location(centerLat, this._currentWorldCenter.longitude),
+                        Microsoft.Maps.SpatialMath.DistanceUnits.Feet
+                    );
+
+                    if (this._currentWorldCenter.longitude > centerLon){
+                        offsetX = -offsetX;
+                    }
+
+                    if (this._currentWorldCenter.latitude > centerLat){
+                        offsetY = -offsetY;
+                    }
+                }
+
+                this._bindings.finishImport({
+                    centerLat,
+                    centerLon,
+                    latSpan: Math.abs(latSpan),
+                    lonSpan: Math.abs(lonSpan),
+                    pixelWidth,
+                    pixelHeight,
+                    physicalWidth,
+                    physicalHeight,
+                    offsetY,
+                    offsetX,
+                    address: ""
                 });
+
+                this._importMapContainer.style.display = 'none';
+                this._importModeButtons.style.display = 'none';
+                this._locationModeButtons.style.display = 'block';
+                this._locationMapControl.classList= '';
+                this._showRightPanel();
             });
         }).catch((err) => {
             console.log(err);
@@ -540,6 +598,56 @@ class FormItMap {
         this._locationModeButtons.style.display = 'block';
         this._locationMapControl.classList = '';
         this._showRightPanel();
+    }
+
+    //May be useful feature in the future...
+    /*_handleWorldCenterClick(e){
+        //set world center marker
+        const clickedPoint = new Microsoft.Maps.Point(e.getX(), e.getY());
+        const clickedLocation = e.target.tryPixelToLocation(clickedPoint);
+        this._currentWorldCenter = clickedLocation;
+        this._setWorldCenter(clickedLocation);
+    }*/
+
+    _setWorldCenter(location){
+        this._currentWorldCenter = location;
+
+        this._importMap.entities.clear();
+
+        const icon = document.getElementById("WorldCenterImg").src;
+
+        this._worldCenterPin = new Microsoft.Maps.Pushpin(location, {
+            icon: icon,
+            width: 40,
+            height: 40,
+            anchor: new Microsoft.Maps.Point(20, 20)
+        });
+
+        const tooltip = new Microsoft.Maps.Infobox(this._importMap.getCenter(), {
+            visible: false,
+            showPointer: false,
+            offset: new Microsoft.Maps.Point(15, -35)
+        });
+
+        const tooltipTemplate = '<div style="border:solid 1px black;font-size:14px;background-color:white;height:14px;width:90px;padding:1px;text-align:center">World center</div>';
+
+        tooltip.setMap(this._importMap);
+
+        Microsoft.Maps.Events.addHandler(this._worldCenterPin, 'mouseover', () => {
+            tooltip.setOptions({
+                location: location,
+                htmlContent: tooltipTemplate,
+                visible: true
+            });
+        });
+
+        Microsoft.Maps.Events.addHandler(this._worldCenterPin, 'mouseout', () => {
+            tooltip.setOptions({
+                visible: false
+            });
+        });
+
+        this._importMap.entities.push(this._worldCenterPin);
     }
 
     _saveLocationOnly(){
@@ -608,7 +716,6 @@ class FormItMap {
             this._importMapControl.style.width = `${minLength}px`;
             
             this._importMap.setView({
-                center: this._location,
                 width: minLength, 
                 height: minLength 
             });
