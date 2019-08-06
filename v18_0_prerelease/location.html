@@ -15,6 +15,7 @@
                 saveLocation: LocationDialog.SaveLocation,
                 getAddressAsync: LocationDialog.GetLocation,
                 finishImport: LocationDialog.FinishImport,
+                getSatelliteImageData: LocationDialog.GetSatelliteImageData,
                 showNotification: LocationDialog.ShowNotification,
                 fetchNearestWeatherStations: LocationDialog.FetchNearestWeatherStations,
                 isImperialUnitType: LocationDialog.IsImperialUnitType,
@@ -67,6 +68,7 @@
             <div id='Maps'>
                 <div id='LocationMapControl' ></div>
                 <div id='ImportMapContainer'>
+                        <img id='WorldCenterImg' class='worldCenter' src='images/cursors/worldcenter.png' title='World center'>
                     <div id='ImportMapControl' style="position:relative;width:640px;height:640px;"></div>
                 </div>
             </div>

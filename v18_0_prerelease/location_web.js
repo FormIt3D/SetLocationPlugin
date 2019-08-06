@@ -32,6 +32,13 @@ LocationDialog.FinishImport = function(importSettings)
     PluginDialog.Close();
 }
 
+LocationDialog.GetSatelliteImageData = function(callback)
+{
+    FormItInterface.CallMethod("LocationDialog.GetSatelliteImageData", "", function(imageData){
+        callback(JSON.parse(imageData));
+    });
+}
+
 LocationDialog.ShowNotification = function(messageObj)
 {
     FormItInterface.CallMethod("LocationDialog.ShowNotification", messageObj);
