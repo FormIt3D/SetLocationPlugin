@@ -439,6 +439,8 @@ class FormItMap {
                     center: this._locationMap.getCenter(),
                     zoom: 20
                 });
+
+                this._unsetWorldCenter();
             }
 
             this._syncLocationMap();
@@ -648,6 +650,11 @@ class FormItMap {
         });
 
         this._importMap.entities.push(this._worldCenterPin);
+    }
+
+    _unsetWorldCenter(){
+        this._currentWorldCenter = undefined;
+        this._importMap.entities.clear();
     }
 
     _saveLocationOnly(){
