@@ -35,7 +35,12 @@ LocationDialog.FinishImport = function(importSettings)
 LocationDialog.GetSatelliteImageData = function(callback)
 {
     FormItInterface.CallMethod("LocationDialog.GetSatelliteImageData", "", function(imageData){
-        callback(JSON.parse(imageData));
+
+        if (imageData === "unedefined"){
+            callback();            
+        }else{
+            callback(JSON.parse(imageData));
+        }
     });
 }
 
