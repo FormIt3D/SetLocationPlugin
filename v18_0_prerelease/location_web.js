@@ -36,7 +36,7 @@ LocationDialog.GetSatelliteImageData = function(callback)
 {
     FormItInterface.CallMethod("LocationDialog.GetSatelliteImageData", "", function(imageData){
 
-        if (imageData === "unedefined"){
+        if (imageData === "undefined"){
             callback();            
         }else{
             callback(JSON.parse(imageData));
