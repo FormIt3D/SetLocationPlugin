@@ -568,25 +568,45 @@ class FormItMap {
                     }
                 }
 
-                this._bindings.finishImport({
-                    centerLat,
-                    centerLon,
-                    latSpan: Math.abs(latSpan),
-                    lonSpan: Math.abs(lonSpan),
-                    pixelWidth,
-                    pixelHeight,
-                    physicalWidth,
-                    physicalHeight,
-                    offsetY,
-                    offsetX,
-                    address: ""
-                });
+                const finishedHandler =  () => {
+                    this._bindings.finishImport({
+                        centerLat,
+                        centerLon,
+                        latSpan: Math.abs(latSpan),
+                        lonSpan: Math.abs(lonSpan),
+                        pixelWidth,
+                        pixelHeight,
+                        physicalWidth,
+                        physicalHeight,
+                        offsetY,
+                        offsetX,
+                        address: this._address
+                    });
 
-                this._importMapContainer.style.display = 'none';
-                this._importModeButtons.style.display = 'none';
-                this._locationModeButtons.style.display = 'block';
-                this._locationMapControl.classList= '';
-                this._showRightPanel();
+                    this._importMapContainer.style.display = 'none';
+                    this._importModeButtons.style.display = 'none';
+                    this._locationModeButtons.style.display = 'block';
+                    this._locationMapControl.classList= '';
+                    this._showRightPanel();
+                }
+
+                this._bindings.getAddressAsync((address) => {
+                    const isValidAddress = address && !address.startsWith('Latitude')
+
+                    if (isValidAddress) {
+                        finishedHandler();
+                    } else {
+                        this._reverseGeocode(centerLat, centerLon, (result) => {
+                            this._address = result.name;
+                            this._location = new Microsoft.Maps.Location(centerLat, centerLon);
+                            this._addressInput.value = this._address;
+                            this._updatePushPin();
+                            this._focusLocation();
+                            finishedHandler();
+                        });
+                    }
+                });
+                
             });
         }).catch((err) => {
             console.log(err);
