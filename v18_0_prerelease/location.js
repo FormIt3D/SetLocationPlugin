@@ -776,13 +776,6 @@ class FormItMap {
                     weatherStationLocations.push(new Microsoft.Maps.Location(station.latitude, station.longitude));
                     this._addStationMarker(station);
                 });
-    
-                const bounds = Microsoft.Maps.LocationRect.fromLocations(weatherStationLocations.slice(0,3));
-                bounds.buffer(.2);
-
-                this._locationMap.setView({
-                    bounds: bounds
-                });
             }
     
             if (this._bindings.fetchNearestWeatherStations){
