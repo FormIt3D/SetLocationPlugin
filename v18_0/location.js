@@ -499,7 +499,10 @@ class FormItMap {
     _finishImport(){
         this._isImporting = false;
 
-        this._getValidZoomLevelForImport(this._importMap.getZoom()).then(() => {
+        //FORMIT-9751 Bing Maps occasionally gives float instead of int for zoomLevel
+        const zoom = Math.floor(this._importMap.getZoom());
+
+        this._getValidZoomLevelForImport(zoom).then(() => {
             const mapCenter = this._importMap.getCenter();
             const centerLat = mapCenter.latitude;
             const centerLon = mapCenter.longitude;
