@@ -5,12 +5,5 @@
             "minor":0
         },
         "path":"v18_0_prerelease"
-    },
-    {
-        "version":{
-            "major":20,
-            "minor":0
-        },
-        "path":"v20_0"
     }
 ]
