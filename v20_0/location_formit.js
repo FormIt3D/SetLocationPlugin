@@ -81,25 +81,25 @@ LocationDialog.IsImperialUnitType = function(){
 
 LocationDialog.FetchNearestWeatherStations = function(locationObj)
 {
-    return FormIt.Utils.PluginHelpers.FetchNearestWeatherStations(
+    return FormItHelpers.Plugins.FetchNearestWeatherStations(
         locationObj.latitude, locationObj.longitude);
 }
 
 LocationDialog.FetchDashboardWidgets = function()
 {
-    return FormIt.Utils.PluginHelpers.FetchDashboardWidgets();
+    return FormItHelpers.Plugins.FetchDashboardWidgets();
 }
 
 LocationDialog.FetchWidgetsForStation = function (args)
 {
-    return FormIt.Utils.PluginHelpers.FetchWidgetsForStation(args.stationId, args.widgetIds, args.widgetVersions);
+    return FormItHelpers.Plugins.FetchWidgetsForStation(args.stationId, args.widgetIds, args.widgetVersions);
 }
 
 LocationDialog.CheckLogin = function()
 {
-    return !!FormIt.Utils.PluginHelpers.IsLoggedIn();
+    return !!FormItHelpers.Plugins.IsLoggedIn();
 }
 
 LocationDialog.PromptSignIn = function(){
-    FormIt.Utils.PluginHelpers.PromptSignIn();
+    FormItHelpers.Plugins.PromptSignIn();
 }
