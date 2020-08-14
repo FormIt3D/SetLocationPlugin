@@ -7,7 +7,7 @@ LocationDialog.GetLocation = function(callback){
 }
 
 LocationDialog.Cancel = function(){
-    PluginDialog.Close("LocationDialog");
+    PluginDialog.Close();
 }
 
 LocationDialog.GetSatelliteImageData = function(callback){
@@ -29,12 +29,12 @@ LocationDialog.SaveLocation = function(address, latitude, longitude){
     };
 
     FormItInterface.CallMethod("LocationDialog.SaveLocation", args);
-    PluginDialog.Close("LocationDialog");
+    PluginDialog.Close();
 }
 
 LocationDialog.FinishImport = function(importSettings){
     FormItInterface.CallMethod("LocationDialog.FinishImport", importSettings);
-    PluginDialog.Close("LocationDialog");
+    PluginDialog.Close();
 }
 
 LocationDialog.ShowNotification = function(messageObj){
