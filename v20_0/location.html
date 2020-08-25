@@ -6,17 +6,16 @@
         <link rel="stylesheet" href="location.css"/>
         <script type="text/javascript" src="location_web.js"></script>
         <script>
-            let langParams = "";
+            const qsParams = new URLSearchParams(window.location.search);
+            let selectedLang = qsParams.get("BingMapsLang") || "";
 
             try {
-                const selectedLang = window.localStorage.getItem("BingMapsLang");
-
-                if (selectedLang){
-                    langParams = `setLang=${selectedLang}`;
-                }
+                selectedLang = window.localStorage.getItem("BingMapsLang");
             } catch(e) {
                 console.log('localStorage is disabled');
             }
+
+            const langParams = `setLang=${selectedLang}`;
 
             const not_important = 'YVRwaEhjZHdqVDFWVG1ZdVRKdFl+X2Mxc2s4WThURVg4WWk4TGxNbG8wUX5BamVXaEIzWlRFNGVJYkV5RUtVd2hsLUFTRW5yellVaVNpZ1I2UGs1STdHUWFkWlpZd1oySWJieUlzRGpzRnZK';
             const script = document.createElement('script');
