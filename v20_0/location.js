@@ -263,7 +263,13 @@ class FormItMap {
             "Vietnamese - Vietnam": "vi-VN"
         };
 
-        const selectedLang = window.localStorage.getItem("BingMapsLang") || "";
+        let selectedLang = "";
+
+        try {
+            selectedLang = window.localStorage.getItem("BingMapsLang");
+        } catch(e) {
+            console.log('localStorage is disabled');
+        }
 
         Object.keys(supportedLanguages).forEach((key) => {
             const value = supportedLanguages[key];
@@ -281,8 +287,12 @@ class FormItMap {
 
         this._languageInput.addEventListener('change', (e) => {
             //to make selection sticky
-            window.localStorage.setItem("BingMapsLang", e.target.value);
-
+            try {
+                window.localStorage.setItem("BingMapsLang", e.target.value);
+            } catch(e) {
+                console.log('localStorage is disabled');
+            }
+            
             //reload
             window.location.href = window.location.href;
         });
