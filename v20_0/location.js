@@ -263,7 +263,8 @@ class FormItMap {
             "Vietnamese - Vietnam": "vi-VN"
         };
 
-        let selectedLang = "";
+        const qsParams = new URLSearchParams(window.location.search);
+        let selectedLang = qsParams.get("BingMapsLang") || "";
 
         try {
             selectedLang = window.localStorage.getItem("BingMapsLang");
@@ -294,7 +295,7 @@ class FormItMap {
             }
             
             //reload
-            window.location.href = window.location.href;
+            window.location.href = `${window.location.href}&BingMapsLang=${e.target.value}`;
         });
     }
 
