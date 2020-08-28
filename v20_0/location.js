@@ -294,8 +294,11 @@ class FormItMap {
                 console.log('localStorage is disabled');
             }
             
+            const qsParams = new URLSearchParams(window.location.search);
+            qsParams.set("BingMapsLang", e.target.value);
+
             //reload
-            window.location.href = `${window.location.href}&BingMapsLang=${e.target.value}`;
+            window.location.href = `${window.location.href.split('?')[0]}?${qsParams.toString()}`;
         });
     }
 
