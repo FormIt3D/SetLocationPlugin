@@ -530,6 +530,22 @@ class FormItMap {
     }
 
     _finishImport(){
+
+        //If a user has already imported a satellite image, check to see that the world center pin in within view.
+        //If it's not within view, prompt the user to confirm if they would like to continue. This may mean 
+        //that they will be importing a satellite image far away from the world center.
+        if (this._worldCenterPin){
+            const bounds = this._importMap.getBounds();
+            const isVisible = bounds.contains(this._worldCenterPin.getLocation());
+
+            if (!isVisible){
+                const confirmed = confirm("This will move your satellite image and terrain away from the world origin. Continue?");
+                if (!confirmed) {
+                    return;
+                }
+            }
+        }
+
         this._isImporting = false;
 
         //FORMIT-9751 Bing Maps occasionally gives float instead of int for zoomLevel
