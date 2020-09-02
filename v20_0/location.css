@@ -363,3 +363,14 @@ input:focus {
     margin:5px 0;
     width:200px;
 }
+
+#satellite-confirm .confirm{
+    background-color: #4675A8;
+    color: white;
+}
+
+#satellite-confirm .cancel{
+    background-color: white;
+    color: #4675A8;
+    border: solid 1px #A7BFD3;
+}

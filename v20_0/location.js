@@ -530,6 +530,125 @@ class FormItMap {
     }
 
     _finishImport(){
+        const completeImport = (isMovingOriginToCenterOfImport) => {
+            this._isImporting = false;
+
+            //FORMIT-9751 Bing Maps occasionally gives float instead of int for zoomLevel
+            const zoom = Math.floor(this._importMap.getZoom());
+
+            this._getValidZoomLevelForImport(zoom).then(() => {
+                const mapCenter = this._importMap.getCenter();
+                const centerLat = mapCenter.latitude;
+                const centerLon = mapCenter.longitude;
+
+                //Get current UI pixel size, but clamp to 640x640
+                let pixelWidth = this._importMapControl.clientWidth;
+                let pixelHeight = this._importMapControl.clientHeight;
+
+                const bounds = this._importMap.getBounds();
+
+                const west = bounds.getNorthwest().latitude;
+                const east = bounds.getSoutheast().latitude;
+                const north = bounds.getSoutheast().longitude;
+                const south = bounds.getNorthwest().longitude;
+
+                const latSpan = west - east;
+                const lonSpan = north - south;
+
+                if (pixelWidth > 640){
+                    latSpan *= 640 / pixelWidth;
+                    pixelWidth = 640;
+                }
+
+                if (pixelHeight > 640){
+                    lonSpan *= 640 / pixelHeight;
+                    pixelHeight = 640;
+                }
+
+                const westPt = new Microsoft.Maps.Location(centerLat - latSpan/2, centerLon);
+                const eastPt = new Microsoft.Maps.Location(centerLat + latSpan/2, centerLon);
+                const northPt = new Microsoft.Maps.Location(centerLat , centerLon + lonSpan/2);
+                const southPt = new Microsoft.Maps.Location(centerLat, centerLon - lonSpan/2);
+
+                Microsoft.Maps.loadModule('Microsoft.Maps.SpatialMath', () => {
+                    const meterWidth = Microsoft.Maps.SpatialMath.getDistanceTo(westPt, eastPt);
+                    const meterHeight = Microsoft.Maps.SpatialMath.getDistanceTo(northPt, southPt);
+
+                    //formit internal unit is in feet
+                    const metersToFeet = 3.28;
+                    const physicalWidth = meterWidth * metersToFeet;
+                    const physicalHeight = meterHeight * metersToFeet;
+
+                    let offsetY;
+                    let offsetX;
+
+                    if (this._currentWorldCenter && !isMovingOriginToCenterOfImport){
+                        offsetY = Microsoft.Maps.SpatialMath.getDistanceTo(
+                            mapCenter, 
+                            new Microsoft.Maps.Location(this._currentWorldCenter.latitude, centerLon),
+                            Microsoft.Maps.SpatialMath.DistanceUnits.Feet
+                        );
+
+                        //second get distance in longitude
+                        offsetX = Microsoft.Maps.SpatialMath.getDistanceTo(
+                            mapCenter, 
+                            new Microsoft.Maps.Location(centerLat, this._currentWorldCenter.longitude),
+                            Microsoft.Maps.SpatialMath.DistanceUnits.Feet
+                        );
+
+                        if (this._currentWorldCenter.longitude > centerLon){
+                            offsetX = -offsetX;
+                        }
+
+                        if (this._currentWorldCenter.latitude > centerLat){
+                            offsetY = -offsetY;
+                        }
+                    }
+
+                    const finishedHandler =  () => {
+
+                        LocationDialog.FinishImport({
+                            centerLat,
+                            centerLon,
+                            latSpan: Math.abs(latSpan),
+                            lonSpan: Math.abs(lonSpan),
+                            pixelWidth,
+                            pixelHeight,
+                            physicalWidth,
+                            physicalHeight,
+                            offsetY,
+                            offsetX,
+                            address: this._address
+                        });
+
+                        this._importMapContainer.style.display = 'none';
+                        this._importModeButtons.style.display = 'none';
+                        this._locationModeButtons.style.display = 'block';
+                        this._locationMapControl.classList= '';
+                        this._showRightPanel();
+                    }
+
+                    LocationDialog.GetLocation((address) => {
+                        const isValidAddress = address && !address.startsWith('Latitude');
+
+                        if (isValidAddress) {
+                            finishedHandler();
+                        } else {
+                            this._reverseGeocode(centerLat, centerLon, (result) => {
+                                this._address = result.name;
+                                this._location = new Microsoft.Maps.Location(centerLat, centerLon);
+                                this._addressInput.value = this._address;
+                                this._updatePushPin();
+                                this._focusLocation();
+                                finishedHandler();
+                            });
+                        }
+                    });
+                });
+            }).catch((err) => {
+                console.log(err);
+            });
+        }
 
         //If a user has already imported a satellite image, check to see that the world center pin in within view.
         //If it's not within view, prompt the user to confirm if they would like to continue. This may mean 
@@ -539,130 +658,36 @@ class FormItMap {
             const isVisible = bounds.contains(this._worldCenterPin.getLocation());
 
             if (!isVisible){
-                const confirmed = confirm("This will move your satellite image and terrain away from the world origin. Continue?");
-                if (!confirmed) {
-                    return;
-                }
-            }
-        }
-
-        this._isImporting = false;
-
-        //FORMIT-9751 Bing Maps occasionally gives float instead of int for zoomLevel
-        const zoom = Math.floor(this._importMap.getZoom());
-
-        this._getValidZoomLevelForImport(zoom).then(() => {
-            const mapCenter = this._importMap.getCenter();
-            const centerLat = mapCenter.latitude;
-            const centerLon = mapCenter.longitude;
-
-            //Get current UI pixel size, but clamp to 640x640
-            let pixelWidth = this._importMapControl.clientWidth;
-            let pixelHeight = this._importMapControl.clientHeight;
-
-            const bounds = this._importMap.getBounds();
-
-            const west = bounds.getNorthwest().latitude;
-            const east = bounds.getSoutheast().latitude;
-            const north = bounds.getSoutheast().longitude;
-            const south = bounds.getNorthwest().longitude;
-
-            const latSpan = west - east;
-            const lonSpan = north - south;
-
-            if (pixelWidth > 640){
-                latSpan *= 640 / pixelWidth;
-                pixelWidth = 640;
-            }
-
-            if (pixelHeight > 640){
-                lonSpan *= 640 / pixelHeight;
-                pixelHeight = 640;
-            }
-
-            const westPt = new Microsoft.Maps.Location(centerLat - latSpan/2, centerLon);
-            const eastPt = new Microsoft.Maps.Location(centerLat + latSpan/2, centerLon);
-            const northPt = new Microsoft.Maps.Location(centerLat , centerLon + lonSpan/2);
-            const southPt = new Microsoft.Maps.Location(centerLat, centerLon - lonSpan/2);
-
-            Microsoft.Maps.loadModule('Microsoft.Maps.SpatialMath', () => {
-                const meterWidth = Microsoft.Maps.SpatialMath.getDistanceTo(westPt, eastPt);
-                const meterHeight = Microsoft.Maps.SpatialMath.getDistanceTo(northPt, southPt);
-
-                //formit internal unit is in feet
-                const metersToFeet = 3.28;
-                const physicalWidth = meterWidth * metersToFeet;
-                const physicalHeight = meterHeight * metersToFeet;
-
-                let offsetY;
-                let offsetX;
-
-                if (this._currentWorldCenter){
-                    offsetY = Microsoft.Maps.SpatialMath.getDistanceTo(
-                        mapCenter, 
-                        new Microsoft.Maps.Location(this._currentWorldCenter.latitude, centerLon),
-                        Microsoft.Maps.SpatialMath.DistanceUnits.Feet
-                    );
-
-                    //second get distance in longitude
-                    offsetX = Microsoft.Maps.SpatialMath.getDistanceTo(
-                        mapCenter, 
-                        new Microsoft.Maps.Location(centerLat, this._currentWorldCenter.longitude),
-                        Microsoft.Maps.SpatialMath.DistanceUnits.Feet
-                    );
-
-                    if (this._currentWorldCenter.longitude > centerLon){
-                        offsetX = -offsetX;
-                    }
-
-                    if (this._currentWorldCenter.latitude > centerLat){
-                        offsetY = -offsetY;
-                    }
-                }
-
-                const finishedHandler =  () => {
-
-                    LocationDialog.FinishImport({
-                        centerLat,
-                        centerLon,
-                        latSpan: Math.abs(latSpan),
-                        lonSpan: Math.abs(lonSpan),
-                        pixelWidth,
-                        pixelHeight,
-                        physicalWidth,
-                        physicalHeight,
-                        offsetY,
-                        offsetX,
-                        address: this._address
-                    });
-
-                    this._importMapContainer.style.display = 'none';
-                    this._importModeButtons.style.display = 'none';
-                    this._locationModeButtons.style.display = 'block';
-                    this._locationMapControl.classList= '';
-                    this._showRightPanel();
-                }
-
-                LocationDialog.GetLocation((address) => {
-                    const isValidAddress = address && !address.startsWith('Latitude');
-
-                    if (isValidAddress) {
-                        finishedHandler();
-                    } else {
-                        this._reverseGeocode(centerLat, centerLon, (result) => {
-                            this._address = result.name;
-                            this._location = new Microsoft.Maps.Location(centerLat, centerLon);
-                            this._addressInput.value = this._address;
-                            this._updatePushPin();
-                            this._focusLocation();
-                            finishedHandler();
-                        });
-                    }
+                $("#satellite-confirm").dialog({
+                    resizable: false,
+                    height: "auto",
+                    width: 500,
+                    modal: true,
+                    buttons: [
+                        {
+                            text:'Keep Location Relative',
+                            class:'confirm',
+                            click: function() {
+                                completeImport(false);
+                                $(this).dialog("close");
+                            }                
+                        },
+                        {
+                            text:'Move Location to Origin',
+                            class:'reset',
+                            click: function() {
+                                completeImport(true);
+                                $(this).dialog("close");
+                            }                 
+                        }
+                    ]
                 });
-            });
-        }).catch((err) => {
-            console.log(err);
-        });
+            }else{
+                completeImport(false);
+            }
+        }else{
+            completeImport(true);
+        }
     }
 
     _cancelImport(){
