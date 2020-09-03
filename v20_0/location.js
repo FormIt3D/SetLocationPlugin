@@ -665,20 +665,20 @@ class FormItMap {
                     modal: true,
                     buttons: [
                         {
-                            text:'Keep Location Relative',
-                            class:'confirm',
-                            click: function() {
-                                completeImport(false);
-                                $(this).dialog("close");
-                            }                
-                        },
-                        {
                             text:'Move Location to Origin',
-                            class:'reset',
+                            id:'ImportOrigin',
                             click: function() {
                                 completeImport(true);
                                 $(this).dialog("close");
                             }                 
+                        },
+                        {
+                            text:'Keep Location Relative',
+                            id:'ImportRelative',
+                            click: function() {
+                                completeImport(false);
+                                $(this).dialog("close");
+                            }
                         }
                     ]
                 });

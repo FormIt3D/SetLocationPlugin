@@ -364,13 +364,22 @@ input:focus {
     width:200px;
 }
 
-#satellite-confirm .confirm{
+.ui-dialog-buttonpane #ImportOrigin{
     background-color: #4675A8;
     color: white;
+    border: solid 1px #A7BFD3;
 }
 
-#satellite-confirm .cancel{
+.ui-dialog-buttonpane #ImportOrigin:hover{
+    box-shadow: 0 0 4px #0cbbf4;
+}
+
+.ui-dialog-buttonpane #ImportRelative{
     background-color: white;
     color: #4675A8;
     border: solid 1px #A7BFD3;
+}
+
+.ui-dialog-buttonpane #ImportRelative:hover{
+    box-shadow: 0 0 4px #0cbbf4;
 }
