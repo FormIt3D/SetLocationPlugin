@@ -818,7 +818,7 @@ class FormItMap {
 
     _handleResize () {
         if (this._isImporting) {
-            const minLength = Math.min(window.innerHeight, window.innerWidth, this._maxMapImportSize);
+            const minLength = Math.min(window.innerHeight -41 , window.innerWidth -41 , this._maxMapImportSize);
 
             //keep import map square by minium length
             this._importMapControl.style.height = `${minLength}px`;
