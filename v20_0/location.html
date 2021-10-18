@@ -1,117 +1,119 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Project Location</title>
-        <meta charset="utf-8" />
-        <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-        <link rel="stylesheet" href="location.css"/>
-        <script type="text/javascript" src="location_web.js"></script>
-        <script>
-            const qsParams = new URLSearchParams(window.location.search);
-            let selectedLang = qsParams.get("BingMapsLang") || "";
 
-            try {
-                selectedLang = window.localStorage.getItem("BingMapsLang");
-            } catch(e) {
-                console.log('localStorage is disabled');
-            }
+<head>
+    <title>Project Location</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="location.css" />
+    <script type="text/javascript" src="location_web.js"></script>
+    <script>
+        const qsParams = new URLSearchParams(window.location.search);
+        let selectedLang = qsParams.get("BingMapsLang") || "";
 
-            const langParams = `setLang=${selectedLang}`;
+        try {
+            selectedLang = window.localStorage.getItem("BingMapsLang");
+        } catch (e) {
+            console.log('localStorage is disabled');
+        }
 
-            const not_important = 'YVRwaEhjZHdqVDFWVG1ZdVRKdFl+X2Mxc2s4WThURVg4WWk4TGxNbG8wUX5BamVXaEIzWlRFNGVJYkV5RUtVd2hsLUFTRW5yellVaVNpZ1I2UGs1STdHUWFkWlpZd1oySWJieUlzRGpzRnZK';
-            const script = document.createElement('script');
-            script.src = `https://www.bing.com/api/maps/mapcontrol?callback=FormItMapGlobalInit&key=${atob(not_important)}&${langParams}`;
-            document.head.appendChild(script);
-        </script>
-        <script type="text/javascript" src="../../../FormItExamplePlugins/SharedPluginFiles/FormItInterface.js"></script>
-        <script src="location.js"></script>
-        <script>
-            FormItInterface.Initialize(() => {
-                console.log("FormItInterface.Initialize");
-                window.pluginInterfaceReady = true;
-            });
-        </script>
-    </head>
-    <body>
-        <div id='InputBar'>
-                <div id='LocationModeButtons'>
-                    <div id='LocationSearchContainer'>
-                        <input type='text' id='AddressInput' placeholder='Search...'/>
-                    </div>
-                    <div class='buttons'>
-                        <input id='StartImportButton' class='button positive' type='button' value='Import Satellite Image and Terrain' />
-                        <input id='SetLocationButton' class='button' type='button' value='Set Location Only' />
-                        <input id='CancelLocationButton' class='button' type='button' value='Cancel' />
-                    </div>
-                </div>
-                <div id='ImportModeButtons' class='buttons'>
-                    <input id='FinishImportButton' class='button positive' type='button' value='Finish Importing' />
-                    <input id='CancelImportButton' class='button' type='button' value='Cancel' />
-                </div>
+        const langParams = `setLang=${selectedLang}`;
+
+        const not_important = 'YVRwaEhjZHdqVDFWVG1ZdVRKdFl+X2Mxc2s4WThURVg4WWk4TGxNbG8wUX5BamVXaEIzWlRFNGVJYkV5RUtVd2hsLUFTRW5yellVaVNpZ1I2UGs1STdHUWFkWlpZd1oySWJieUlzRGpzRnZK';
+        const script = document.createElement('script');
+        script.src = `https://www.bing.com/api/maps/mapcontrol?callback=FormItMapGlobalInit&${langParams}`;
+        document.head.appendChild(script);
+    </script>
+    <script type="text/javascript" src="../../../FormItExamplePlugins/SharedPluginFiles/FormItInterface.js"></script>
+    <script src="location.js"></script>
+    <script>
+        FormItInterface.Initialize(() => {
+            console.log("FormItInterface.Initialize");
+            window.pluginInterfaceReady = true;
+        });
+    </script>
+</head>
+
+<body>
+    <div id='InputBar'>
+        <div id='LocationModeButtons'>
+            <div id='LocationSearchContainer'>
+                <input type='text' id='AddressInput' placeholder='Search...' />
+            </div>
+            <div class='buttons'>
+                <input id='StartImportButton' class='button positive' type='button' value='Import Satellite Image and Terrain' />
+                <input id='SetLocationButton' class='button' type='button' value='Set Location Only' />
+                <input id='CancelLocationButton' class='button' type='button' value='Cancel' />
             </div>
         </div>
-        <div>
-            <div id='Maps'>
-                <div id='LocationMapControl' ></div>
-                <div id='ImportMapContainer'>
-                        <img id='WorldCenterImg' class='worldCenter' src='images/cursors/worldcenter.png' title='World center'>
-                    <div id='ImportMapControl' style="position:relative;width:640px;height:640px;"></div>
-                </div>
-            </div>
-            <div id='WeatherGraphDisplayContainer' class='none'>
-                <div id='LoadingSpinner' ></div>
-                <a id='GraphCloseButton' href='javascript:void(0);'>x</a>
-                <div id='WeatherStationId'>
-                    Weather Station ID:
-                    <span id='StationId'></span>
-                </div>
-                <div id='WeatherStationDistance'>
-                </div>
-                <div id='WeatherGraphDisplay'></div>
-                <div id='WeatherGraphName'></div>
+        <div id='ImportModeButtons' class='buttons'>
+            <input id='FinishImportButton' class='button positive' type='button' value='Finish Importing' />
+            <input id='CancelImportButton' class='button' type='button' value='Cancel' />
+        </div>
+    </div>
+    </div>
+    <div>
+        <div id='Maps'>
+            <div id='LocationMapControl'></div>
+            <div id='ImportMapContainer'>
+                <img id='WorldCenterImg' class='worldCenter' src='images/cursors/worldcenter.png' title='World center'>
+                <div id='ImportMapControl' style="position:relative;width:640px;height:640px;"></div>
             </div>
         </div>
-        <div id='RightPanel'>
-            <div id='NotSignedInState' class='none'>
-                <p>
-                    Please 
-                    <a id='SignIn' href='javascript:void(0);'>sign in</a>
-                     to view weather stations and climate data.
-                </p>
+        <div id='WeatherGraphDisplayContainer' class='none'>
+            <div id='LoadingSpinner'></div>
+            <a id='GraphCloseButton' href='javascript:void(0);'>x</a>
+            <div id='WeatherStationId'>
+                Weather Station ID:
+                <span id='StationId'></span>
             </div>
-            <div id='NoLocationState'>
-                <img src="images/location.png">
-                <p>Use the search box to find an address, city, or landmark.</p>
+            <div id='WeatherStationDistance'>
             </div>
-            <div id='NoStationState' class='none'>
-                <img src="images/weather_station_pin.png">
-                <p>Zoom out to discover weather stations in this area. Click on a weather station to view the climate data at that location.</p>
-            </div>
-            <div id='GraphState' class='none'>
-                <ul id='WeatherGraphList'>
-                </ul>
-            </div>
-            <div id='MapSettings'>
-                <p>Map Settings:</p>
-                <label for='LanguageInput'>Language and Region</label>
-                <select id='LanguageInput'></select>
-            </div>
+            <div id='WeatherGraphDisplay'></div>
+            <div id='WeatherGraphName'></div>
         </div>
-        <!--Preload marker images-->
-        <div class='none'>
-            <img id='StationMarkerImg' src='images/weather_station_pin.png'>
-            <img id='StationMarkerHoverImg' src='images/weather_station_pin_selected.png'>
-        </div>
-        <div id="satellite-confirm" class='none' title="Confirm satellite import">
+    </div>
+    <div id='RightPanel'>
+        <div id='NotSignedInState' class='none'>
             <p>
-                You've chosen a new location that is far from the previous location.
-            </p>
-            </br>
-            <p>
-                Where should the new satellite image and terrain appear?
+                Please
+                <a id='SignIn' href='javascript:void(0);'>sign in</a> to view weather stations and climate data.
             </p>
         </div>
-        <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    </body>
+        <div id='NoLocationState'>
+            <img src="images/location.png">
+            <p>Use the search box to find an address, city, or landmark.</p>
+        </div>
+        <div id='NoStationState' class='none'>
+            <img src="images/weather_station_pin.png">
+            <p>Zoom out to discover weather stations in this area. Click on a weather station to view the climate data at that location.</p>
+        </div>
+        <div id='GraphState' class='none'>
+            <ul id='WeatherGraphList'>
+            </ul>
+        </div>
+        <div id='MapSettings'>
+            <p>Map Settings:</p>
+            <label for='LanguageInput'>Language and Region</label>
+            <select id='LanguageInput'></select>
+        </div>
+    </div>
+    <!--Preload marker images-->
+    <div class='none'>
+        <img id='StationMarkerImg' src='images/weather_station_pin.png'>
+        <img id='StationMarkerHoverImg' src='images/weather_station_pin_selected.png'>
+    </div>
+    <div id="satellite-confirm" class='none' title="Confirm satellite import">
+        <p>
+            You've chosen a new location that is far from the previous location.
+        </p>
+        </br>
+        <p>
+            Where should the new satellite image and terrain appear?
+        </p>
+    </div>
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+</body>
+
 </html>
