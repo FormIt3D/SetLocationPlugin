@@ -25,6 +25,10 @@ class FormItMap {
 
         this._languageInput = document.getElementById('LanguageInput');
 
+        this._moveLocationToOriginInput = document.getElementById('MoveLocationToOrigin');
+        this._moveLocationToOriginContainer = document.getElementById('MoveLocationToOriginContainer');
+        this._moveLocationToOriginContainer.style.display = "none";
+
         this.initLanguageSettings();
 
         const spinner = new Spinner({
@@ -78,14 +82,9 @@ class FormItMap {
                             this._updatePushPin();
                             this._focusLocation();
                         });
-                        //no results found by auto-suggest API, so try to geocode with exactly what the user gave us.
                     } else {
-                        this._address = this._addressInput.value;
-                        this._location = undefined;
-                        this._geocodeLocationAddress(() => {
-                            this._updatePushPin();
-                            this._focusLocation();
-                        });
+                        //no results found by auto-suggest API, so try to geocode with exactly what the user gave us.
+                        this._setAddress(this._addressInput.value);
                     }
                 }, 100);
             }
@@ -109,7 +108,8 @@ class FormItMap {
             mapTypeId: Microsoft.Maps.MapTypeId.aerial,
             location: defaultLocation,
             disableStreetside: true,
-            disableBirdseye: true
+            disableBirdseye: true,
+            showLocateMeButton: true
         });
 
         Microsoft.Maps.loadModule('Microsoft.Maps.Search', () => {
@@ -146,6 +146,11 @@ class FormItMap {
         });
 
         Microsoft.Maps.Events.addHandler(this._locationMap, 'viewchange', () => {
+            if (!this._zoomFromImport) {
+                this._importMap.setView({
+                    zoom: this._locationMap.getZoom()
+                })
+            }
             this._deactivateAllPins();
             this._deselectStation();
         });
@@ -164,6 +169,7 @@ class FormItMap {
                 window.clearInterval(intervalId);
 
                 this.resetAddress();
+                this.useLastLocation();
 
                 const loginCheckCallback = (isLoggedIn) => {
                     if (isLoggedIn) {
@@ -318,7 +324,12 @@ class FormItMap {
         //https://docs.microsoft.com/en-us/bingmaps/v8-web-control/map-control-api/map-class#events
         window.setTimeout(() => {
             LocationDialog.GetLocation((address) => {
-                this._setAddress(address);
+                if (address) {
+                    this._addressInput.value = address;
+                    if (!this._lastLocation) {
+                        this._setAddress(address);
+                    }
+                }
             });
         }, 100)
     }
@@ -327,6 +338,25 @@ class FormItMap {
         this._weatherStationCache = {};
         this._deactivateAllPins();
         this._deselectStation();
+    }
+
+    useLastLocation() {
+        LocationDialog.GetSatelliteImageData((imageData) => {
+            if (imageData) {
+                this._lastLocation = imageData;
+                this._moveLocationToOriginContainer.style.display = "inline";
+                this._location = new Microsoft.Maps.Location(imageData.lat, imageData.lng);
+
+                this._locationMap.setView({
+                    center: this._location,
+                    zoom: imageData.zoom
+                });
+
+                this._updatePushPin();
+            } else {
+                this._moveLocationToOriginInput.checked = true;
+            }
+        });
     }
 
     _handleLoggedIn() {
@@ -439,10 +469,27 @@ class FormItMap {
         this._locationMapControl.classList = 'importMode';
         this._hideRightPanel();
         this._deselectStation();
+        this._showHideMapControls(false);
 
         LocationDialog.GetSatelliteImageData((imageData) => {
-            if (imageData) {
+            this._importMap.setView({
+                center: this._locationMap.getCenter(),
+                zoom: this._locationMap.getZoom()
+            });
+
+            const showWorldCenter = () => {
+                this._worldCenterOverlay.style.display = 'block';
+                this._unsetWorldCenter();
+                this._moveLocationToOriginInput.checked = true;
+            }
+
+            const hideWorldCenter = (worldCenter) => {
                 this._worldCenterOverlay.style.display = 'none';
+                this._setWorldCenter(worldCenter);
+                this._moveLocationToOriginInput.checked = false;
+            }
+
+            if (imageData) {
 
                 const corners = imageData.corners;
                 const offsetX = imageData.size.x / 2 + corners[0].x;
@@ -458,26 +505,25 @@ class FormItMap {
 
                 const worldCenter = new Microsoft.Maps.Location(worldCenterLat, worldCenterLng);
 
-                const importCenter = new Microsoft.Maps.Location(imageData.lat, imageData.lng);
-
-                this._importMap.setView({
-                    center: importCenter,
-                    zoom: imageData.zoom
+                this._moveLocationToOriginInput.addEventListener("click", () => {
+                    if (this._moveLocationToOriginInput.checked) {
+                        showWorldCenter();
+                    } else {
+                        hideWorldCenter(worldCenter);
+                    }
                 });
 
-                this._setWorldCenter(worldCenter);
+                const bounds = this._locationMap.getBounds();
+                const isVisible = bounds.contains(worldCenter);
+
+                if (!isVisible) {
+                    showWorldCenter();
+                } else {
+                    hideWorldCenter(worldCenter);
+                }
             } else {
-                this._worldCenterOverlay.style.display = 'block';
-
-                this._importMap.setView({
-                    center: this._locationMap.getCenter(),
-                    zoom: 20
-                });
-
-                this._unsetWorldCenter();
+                showWorldCenter();
             }
-
-            this._syncLocationMap();
         });
     }
 
@@ -619,9 +665,12 @@ class FormItMap {
                             physicalHeight,
                             offsetY,
                             offsetX,
-                            address: this._address
+                            // `|| ""` Fixes "ERROR: FormIt.SunAndLocation.AddSatelliteImage unable to
+                            // retrieve address of type std::string" when this._address is undefined.
+                            address: this._address || "" 
                         });
 
+                        this._showHideMapControls(true);
                         this._importMapContainer.style.display = 'none';
                         this._importModeButtons.style.display = 'none';
                         this._locationModeButtons.style.display = 'block';
@@ -683,14 +732,15 @@ class FormItMap {
                     ]
                 });
             } else {
-                completeImport(false);
+                completeImport(this._moveLocationToOriginInput.checked);
             }
         } else {
-            completeImport(true);
+            completeImport(this._moveLocationToOriginInput.checked);
         }
     }
 
     _cancelImport() {
+        this._showHideMapControls(true);
         this._isImporting = false;
         this._importMapContainer.style.display = 'none';
         this._importModeButtons.style.display = 'none';
@@ -752,6 +802,7 @@ class FormItMap {
     _unsetWorldCenter() {
         this._currentWorldCenter = undefined;
         this._importMap.entities.clear();
+        this._worldCenterPin = undefined;
     }
 
     _saveLocationOnly() {
@@ -790,7 +841,16 @@ class FormItMap {
 
     _searchLocationSelected(result) {
         this._address = result.formattedSuggestion;
-        this._location = result.location
+        this._location = result.location;
+
+        if (!this._location) {
+            LocationDialog.ShowNotification({
+                message: "There was a problem retrieving address location information. Please try again.",
+                type: 3,
+                timeout: 5000
+            });
+            return;
+        }
 
         this._updatePushPin();
         this._focusLocation();
@@ -831,13 +891,22 @@ class FormItMap {
         }
     }
 
+    _showHideMapControls(show) {
+        this._locationMap.setOptions({
+            showLocateMeButton: show,
+            showMapTypeSelector: show
+        })
+    }
+
     _syncLocationMap() {
         if (this._isImporting) {
+            this._zoomFromImport = true;
             //keep location map in sync
             this._locationMap.setView({
                 center: this._importMap.getCenter(),
                 zoom: this._importMap.getZoom()
             });
+            this._zoomFromImport = false;
         }
     }
 
