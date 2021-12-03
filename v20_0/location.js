@@ -826,7 +826,16 @@ class FormItMap {
 
     _searchLocationSelected(result) {
         this._address = result.formattedSuggestion;
-        this._location = result.location
+        this._location = result.location;
+
+        if(!this._location) {
+            LocationDialog.ShowNotification({
+                message: "There was a problem retrieving address location information. Please try again.",
+                type: 3,
+                timeout: 5000
+            });
+            return;
+        }
 
         this._updatePushPin();
         this._focusLocation();
