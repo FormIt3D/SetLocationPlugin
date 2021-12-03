@@ -108,7 +108,8 @@ class FormItMap {
             mapTypeId: Microsoft.Maps.MapTypeId.aerial,
             location: defaultLocation,
             disableStreetside: true,
-            disableBirdseye: true
+            disableBirdseye: true,
+            showLocateMeButton: true
         });
 
         Microsoft.Maps.loadModule('Microsoft.Maps.Search', () => {
@@ -145,6 +146,11 @@ class FormItMap {
         });
 
         Microsoft.Maps.Events.addHandler(this._locationMap, 'viewchange', () => {
+            if (!this._zoomFromImport) {
+                this._importMap.setView({
+                    zoom: this._locationMap.getZoom()
+                })
+            }
             this._deactivateAllPins();
             this._deselectStation();
         });
@@ -318,8 +324,11 @@ class FormItMap {
         //https://docs.microsoft.com/en-us/bingmaps/v8-web-control/map-control-api/map-class#events
         window.setTimeout(() => {
             LocationDialog.GetLocation((address) => {
-                if(address) {
+                if (address) {
                     this._addressInput.value = address;
+                    if (!this._lastLocation) {
+                        this._setAddress(address);
+                    }
                 }
             });
         }, 100)
@@ -334,13 +343,16 @@ class FormItMap {
     useLastLocation() {
         LocationDialog.GetSatelliteImageData((imageData) => {
             if (imageData) {
+                this._lastLocation = imageData;
                 this._moveLocationToOriginContainer.style.display = "inline";
-                const importCenter = new Microsoft.Maps.Location(imageData.lat, imageData.lng);
+                this._location = new Microsoft.Maps.Location(imageData.lat, imageData.lng);
 
                 this._locationMap.setView({
-                    center: importCenter,
+                    center: this._location,
                     zoom: imageData.zoom
                 });
+
+                this._updatePushPin();
             } else {
                 this._moveLocationToOriginInput.checked = true;
             }
@@ -457,6 +469,7 @@ class FormItMap {
         this._locationMapControl.classList = 'importMode';
         this._hideRightPanel();
         this._deselectStation();
+        this._showHideMapControls(false);
 
         LocationDialog.GetSatelliteImageData((imageData) => {
             this._importMap.setView({
@@ -493,17 +506,17 @@ class FormItMap {
                 const worldCenter = new Microsoft.Maps.Location(worldCenterLat, worldCenterLng);
 
                 this._moveLocationToOriginInput.addEventListener("click", () => {
-                    if(this._moveLocationToOriginInput.checked) {
+                    if (this._moveLocationToOriginInput.checked) {
                         showWorldCenter();
                     } else {
                         hideWorldCenter(worldCenter);
                     }
                 });
 
-                const bounds = this._importMap.getBounds();
+                const bounds = this._locationMap.getBounds();
                 const isVisible = bounds.contains(worldCenter);
 
-                if(!isVisible) {
+                if (!isVisible) {
                     showWorldCenter();
                 } else {
                     hideWorldCenter(worldCenter);
@@ -657,6 +670,7 @@ class FormItMap {
                             address: this._address || "" 
                         });
 
+                        this._showHideMapControls(true);
                         this._importMapContainer.style.display = 'none';
                         this._importModeButtons.style.display = 'none';
                         this._locationModeButtons.style.display = 'block';
@@ -726,6 +740,7 @@ class FormItMap {
     }
 
     _cancelImport() {
+        this._showHideMapControls(true);
         this._isImporting = false;
         this._importMapContainer.style.display = 'none';
         this._importModeButtons.style.display = 'none';
@@ -828,7 +843,7 @@ class FormItMap {
         this._address = result.formattedSuggestion;
         this._location = result.location;
 
-        if(!this._location) {
+        if (!this._location) {
             LocationDialog.ShowNotification({
                 message: "There was a problem retrieving address location information. Please try again.",
                 type: 3,
@@ -876,13 +891,22 @@ class FormItMap {
         }
     }
 
+    _showHideMapControls(show) {
+        this._locationMap.setOptions({
+            showLocateMeButton: show,
+            showMapTypeSelector: show
+        })
+    }
+
     _syncLocationMap() {
         if (this._isImporting) {
+            this._zoomFromImport = true;
             //keep location map in sync
             this._locationMap.setView({
                 center: this._importMap.getCenter(),
                 zoom: this._importMap.getZoom()
             });
+            this._zoomFromImport = false;
         }
     }
 
