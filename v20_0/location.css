@@ -102,6 +102,10 @@ input:focus {
     display:none;
 }
 
+#MoveLocationToOriginContainer {
+    margin-right: 5px;
+}
+
 #LocationMapControl {
     width: auto !important;
     position:absolute;
@@ -141,6 +145,7 @@ input:focus {
     left: 50%;
     z-index: 1;
     margin: -20px 0 0 -20px;
+    pointer-events: none;
 }
 
 #ImportMapControl {
