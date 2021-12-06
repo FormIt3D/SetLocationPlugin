@@ -168,8 +168,8 @@ class FormItMap {
             if (window.pluginInterfaceReady) {
                 window.clearInterval(intervalId);
 
+                this.syncLocationFromModel();
                 this.resetAddress();
-                this.useLastLocation();
 
                 const loginCheckCallback = (isLoggedIn) => {
                     if (isLoggedIn) {
@@ -340,7 +340,8 @@ class FormItMap {
         this._deselectStation();
     }
 
-    useLastLocation() {
+    // Sync map to location set in current model
+    syncLocationFromModel() {
         LocationDialog.GetSatelliteImageData((imageData) => {
             if (imageData) {
                 this._lastLocation = imageData;
