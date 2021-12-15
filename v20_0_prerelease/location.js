@@ -481,13 +481,13 @@ class FormItMap {
             const showWorldCenter = () => {
                 this._worldCenterOverlay.style.display = 'block';
                 this._unsetWorldCenter();
-                this._moveLocationToOriginInput.checked = true;
+                this._moveLocationToOriginInput.checked = false;
             }
 
             const hideWorldCenter = (worldCenter) => {
                 this._worldCenterOverlay.style.display = 'none';
                 this._setWorldCenter(worldCenter);
-                this._moveLocationToOriginInput.checked = false;
+                this._moveLocationToOriginInput.checked = true;
             }
 
             if (imageData) {
@@ -507,7 +507,7 @@ class FormItMap {
                 const worldCenter = new Microsoft.Maps.Location(worldCenterLat, worldCenterLng);
 
                 this._moveLocationToOriginInput.addEventListener("click", () => {
-                    if (this._moveLocationToOriginInput.checked) {
+                    if (!this._moveLocationToOriginInput.checked) {
                         showWorldCenter();
                     } else {
                         hideWorldCenter(worldCenter);
@@ -712,10 +712,10 @@ class FormItMap {
                 $("#satellite-confirm").dialog({
                     resizable: false,
                     height: "auto",
-                    width: 500,
+                    width: "auto",
                     modal: true,
                     buttons: [{
-                            text: 'Move Location to Origin',
+                            text: 'This location (reset origin)',
                             id: 'ImportOrigin',
                             click: function() {
                                 completeImport(true);
@@ -723,7 +723,7 @@ class FormItMap {
                             }
                         },
                         {
-                            text: 'Keep Location Relative',
+                            text: 'Previous location (keep origin)',
                             id: 'ImportRelative',
                             click: function() {
                                 completeImport(false);
@@ -733,10 +733,10 @@ class FormItMap {
                     ]
                 });
             } else {
-                completeImport(this._moveLocationToOriginInput.checked);
+                completeImport(!this._moveLocationToOriginInput.checked);
             }
         } else {
-            completeImport(this._moveLocationToOriginInput.checked);
+            completeImport(!this._moveLocationToOriginInput.checked);
         }
     }
 
