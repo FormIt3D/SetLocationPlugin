@@ -715,7 +715,7 @@ class FormItMap {
                     width: "auto",
                     modal: true,
                     buttons: [{
-                            text: 'This location (reset origin)',
+                            text: 'Import and move location',
                             id: 'ImportOrigin',
                             click: function() {
                                 completeImport(true);
@@ -723,10 +723,17 @@ class FormItMap {
                             }
                         },
                         {
-                            text: 'Previous location (keep origin)',
+                            text: 'Import and keep previous location',
                             id: 'ImportRelative',
                             click: function() {
                                 completeImport(false);
+                                $(this).dialog("close");
+                            }
+                        },
+                        {
+                            text: 'Cancel',
+                            id: 'ImportCancel',
+                            click: function() {
                                 $(this).dialog("close");
                             }
                         }

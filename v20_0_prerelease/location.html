@@ -47,7 +47,8 @@
             </div>
         </div>
         <div id='ImportModeButtons' class='buttons'>
-            <span id='MoveLocationToOriginContainer'><input type='checkbox' class='' value='true' id='MoveLocationToOrigin' /> <label for='MoveLocationToOrigin'>Keep origin at previous location</label></span>
+            <span id='MoveLocationToOriginContainer'><input type='checkbox' class='' value='true' id='MoveLocationToOrigin' title='Select this option to retain the previous origin. Any newly imported satellite imagery will appear off world center.' />
+            <label for='MoveLocationToOrigin' title='Select this option to retain the previous origin. Any newly imported satellite imagery will appear off world center.'>Keep origin at previous location</label></span>
             <input id='FinishImportButton' class='button positive' type='button' value='Finish Importing' />
             <input id='CancelImportButton' class='button' type='button' value='Cancel' />
         </div>
@@ -106,7 +107,7 @@
     </div>
     <div id="satellite-confirm" class='none' title="Confirm satellite import">
         <p>
-            The new location is far from the previous location.
+            This location is far from the previous location.
         </p>
         </br>
         <p>
