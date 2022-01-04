@@ -388,3 +388,13 @@ input:focus {
 .ui-dialog-buttonpane #ImportRelative:hover{
     box-shadow: 0 0 4px #0cbbf4;
 }
+
+.ui-dialog-buttonpane #ImportCancel{
+    background-color: white;
+    color: #4675A8;
+    border: solid 1px #A7BFD3;
+}
+
+.ui-dialog-buttonpane #ImportCancel:hover{
+    box-shadow: 0 0 4px #0cbbf4;
+}
