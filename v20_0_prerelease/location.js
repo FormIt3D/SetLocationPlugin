@@ -475,7 +475,7 @@ class FormItMap {
         LocationDialog.GetSatelliteImageData((imageData) => {
             this._importMap.setView({
                 center: this._locationMap.getCenter(),
-                zoom: this._locationMap.getZoom()
+                zoom: this._address ? this._locationMap.getZoom() : 20
             });
 
             const showWorldCenter = () => {
