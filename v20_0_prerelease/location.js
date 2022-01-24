@@ -477,6 +477,11 @@ class FormItMap {
                 center: this._locationMap.getCenter(),
                 zoom: this._address ? this._locationMap.getZoom() : 20
             });
+            if (!this._address) {
+                this._locationMap.setView({
+                    zoom: 20
+                });
+            }
 
             const showWorldCenter = () => {
                 this._worldCenterOverlay.style.display = 'block';
