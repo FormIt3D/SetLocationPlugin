@@ -12,5 +12,13 @@
             "minor":0
         },
         "path":"v20_0_prerelease"
+
+    },
+    {
+        "version":{
+            "major":24,
+            "minor":0
+        },
+        "path":"v24_0"
     }
 ]
